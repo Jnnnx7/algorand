@@ -1,4 +1,4 @@
-# Interact with smart contracts
+# Interact with Smart Contracts
 
 ## Application lifecycle
 * The application stores the number of times it is called within its *global state* and also stores the number of times each user account calls the application within their *local state*.
