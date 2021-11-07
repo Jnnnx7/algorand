@@ -1,4 +1,4 @@
-# Modes of use
+# Modes of Use
 
 * Smart signatures have two basic usage scenarios: as a `contract account` or as a `delegated signature`.
 
