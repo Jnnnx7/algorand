@@ -1,4 +1,4 @@
-# Smart contract details
+# Smart Contract Details
 
 * Algorand smart contracts are pieces of logic that reside on the Algorand blockchain and are remotely callable.
 * These contracts are primarily responsible for implementing the logic associated with a distributed application.
