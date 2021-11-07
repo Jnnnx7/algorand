@@ -1,4 +1,4 @@
-# SmartSig details
+# SmartSig Details
 
 * Smart signatures are primarily used to delegate signature authority.
 * Most Algorand transactions are authorized by a signature from a single account or a multisignature account. 
