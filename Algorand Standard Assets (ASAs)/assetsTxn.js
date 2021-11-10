@@ -7,20 +7,6 @@ const keypress = async () => {
     })) 
 }
 
-// Function used to print created asset for account and assetid
-const printCreatedAsset = async function (algodclient, account, assetid) {
-    let accountInfo = await algodclient.accountInformation(account).do();
-    for (idx = 0; idx < accountInfo['created-assets'].length; idx++) {
-        let scrutinizedAsset = accountInfo['created-assets'][idx];
-        if (scrutinizedAsset['index'] == assetid) {
-            console.log("AssetID = " + scrutinizedAsset['index']);
-            let myparms = JSON.stringify(scrutinizedAsset['params'], undefined, 2);
-            console.log("parms = " + myparms);
-            break;
-        }
-    }
-};
-
 // Function used to print asset holding for account and assetid
 const printAssetHolding = async function (algodclient, account, assetid) {
     let accountInfo = await algodclient.accountInformation(account).do();
@@ -78,24 +64,23 @@ async function assetsTransaction() {
         const algodClient = new algosdk.Algodv2(algod_token, server, algod_port);
         
         // create two accounts
+        // https://github.com/algorand/js-algorand-sdk/blob/develop/src/types/account.ts
         let account1 = algosdk.generateAccount();
-        console.log("Account Address = " + account1.addr);
-        console.log("Account Mnemonic = " + account1.sk);
+        let account1_mnemonic = algosdk.secretKeyToMnemonic(account1.sk);
+        console.log("Account Address is " + account1.addr);
+        console.log("Account Mnemonic is " + account1_mnemonic);
         // fund account at: https://dispenser.testnet.aws.algodev.network/
         console.log("Press any key when the account is funded");
         await keypress();
 
         let account2 = algosdk.generateAccount();
-        console.log("Account Address = " + account2.addr);
-        console.log("Account Mnemonic = " + account2.sk);
+        let account2_mnemonic = algosdk.secretKeyToMnemonic(account2.sk)
+        console.log("Account Address is " + account2.addr);
+        console.log("Account Mnemonic is " + account2_mnemonic);
         console.log("Press any key when the account is funded");
         await keypress();
 
         // get Account with mnemonic key
-        // // https://github.com/algorand/js-algorand-sdk/blob/develop/src/types/account.ts
-        // let account1_mnemonic = account1.sk;
-        // let account2_mnemonic = account2.sk;
-
         // // https://github.com/algorand/js-algorand-sdk/blob/develop/src/mnemonic/mnemonic.ts
         // let recovered_account1 = algosdk.mnemonicToSecretKey(account1_mnemonic);
         // let recovered_account2 = algosdk.mnemonicToSecretKey(account2_mnemonic);
@@ -121,9 +106,9 @@ async function assetsTransaction() {
         // boolean whether asset accounts should default to being frozen
         let defaultFrozen = false;
         // string units name for this asset
-        let unitName = "room";
+        let unitName = "coin";
         // string name for this asset
-        let assetName = "appartment";
+        let assetName = "Space Coins";
 
         // sign and send "txn" allows "addr" to create an asset
         let txn = algosdk.makeAssetCreateTxnWithSuggestedParams(addr1, note,
@@ -139,8 +124,7 @@ async function assetsTransaction() {
         // Get the new asset's information from the creator account
         let ptx = await algodClient.pendingTransactionInformation(tx.txId).do();
         let assetID = ptx["asset-index"];
-
-        await printCreatedAsset(algodClient, account1.addr, assetID);
+        
         await printAssetHolding(algodClient, account1.addr, assetID);
 
 
