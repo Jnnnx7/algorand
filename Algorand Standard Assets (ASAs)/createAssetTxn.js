@@ -48,7 +48,7 @@ const waitForConfirmation = async function (algodClient, txId, timeout) {
     throw new Error("Transaction " + txId + " not confirmed after " + timeout + " rounds!");
 };
 
-async function assetsTransaction() {
+async function createAssetTransaction() {
     try {
         // Connect to algod sandbox client and
         const algod_token = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
@@ -57,12 +57,9 @@ async function assetsTransaction() {
         const algodClient = new algosdk.Algodv2(algod_token, server, algod_port);
 
         let account1_mnemonic = 'detail hazard satoshi you castle idea portion allow vault advice section emerge jump theme suit make story lizard multiply scorpion toast inch olympic absorb win';
-        let account2_mnemonic = 'injury science spring lend source praise grid chimney erosion door evoke space sunset oval reunion donkey rabbit bright bronze moral win analyst combine about welcome';
 
         // get Account with mnemonic key
-        // // https://github.com/algorand/js-algorand-sdk/blob/develop/src/mnemonic/mnemonic.ts
         let account1 = algosdk.mnemonicToSecretKey(account1_mnemonic);
-        let account2 = algosdk.mnemonicToSecretKey(account2_mnemonic);
 
         // account1 creates Asset for itself
         let params = await algodClient.getTransactionParams().do();
@@ -106,64 +103,6 @@ async function assetsTransaction() {
         
         await printAssetHolding(algodClient, account1.addr, assetID);
 
-        /* ============================================================ */
-
-
-        // Before an account can receive a specific asset it must opt-in to receive it.
-        // An opt-in transaction is simply an asset transfer with an amount of 0
-        // opt in account2 to transact with the new asset
-        params = await algodClient.getTransactionParams().do();
-        params.fee = 1000;
-        params.flatFee = true;
-
-
-        // https://github.com/algorand/js-algorand-sdk/blob/develop/src/makeTxn.ts#L937
-        // from: string representation of Algorand address of sender
-        // to: string representation of Algorand address of asset recipient
-        // sender and recipient are the same
-        let addr2 = account2.addr;
-        // closeRemainderTo: send all remaining assets after transfer to the "closeRemainderTo" address and close "from"'s asset holdings
-        // not close out the asset
-        let closeRemainderTo = undefined;
-        // revocationTarget: if "from" is the asset's revocation manager, then deduct from "revocationTarget" rather than "from"
-        // not a clawback operation
-        let revocationTarget = undefined;
-        // integer amount of assets to send
-        amount = 0;
-
-        // sign and send "txn" allows sender to begin accepting asset specified by creator and index
-        let opttxn = algosdk.makeAssetTransferTxnWithSuggestedParams(addr2, addr2, closeRemainderTo, revocationTarget, amount, note, assetID, params);
-
-        rawSignedTxn = opttxn.signTxn(account2.sk);
-        let opttx = (await algodClient.sendRawTransaction(rawSignedTxn).do());
-
-        // wait for transaction to be confirmed
-        await waitForConfirmation(algodClient, opttx.txId, 4);
-
-        // should now see the new asset listed in the account information
-        await printAssetHolding(algodClient, account2.addr, assetID);
-
-
-        /* ============================================================ */
-
-
-        // transfer assets from account1 to account2
-        params = await algodClient.getTransactionParams().do();
-        //comment out the next two lines to use suggested fee
-        params.fee = 1000;
-        params.flatFee = true;
-
-        amount = 10;
-
-        let xtxn = algosdk.makeAssetTransferTxnWithSuggestedParams(addr1, addr2, closeRemainderTo, revocationTarget, amount, note, assetID, params);
-
-        rawSignedTxn = xtxn.signTxn(account1.sk);
-        let xtx = (await algodClient.sendRawTransaction(rawSignedTxn).do());
-
-        await waitForConfirmation(algodClient, xtx.txId, 4);
-
-        await printAssetHolding(algodClient, account2.addr, assetID);
-
     } catch (err) {
         console.log("err", err);
     }
@@ -171,4 +110,4 @@ async function assetsTransaction() {
     process.exit();
 }
 
-assetsTransaction();
+createAssetTransaction();
