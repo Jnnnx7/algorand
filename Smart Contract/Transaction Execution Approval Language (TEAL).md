@@ -260,6 +260,74 @@
 | `gaid t`               | push the ID of the asset or application created in the Tth transaction of the current group
 | `gaids`                | push the ID of the asset or application created in the Xth transaction of the current group
 
+
+### Transaction Fields
+
+| Index | Name                     | Type     | Notes
+|:-----:|:------------------------:|:--------:|:-----------------------------------
+| 0     | Sender                   | \[\]byte | 32 byte address
+| 1     | Fee                      | uint64   | micro-Algos
+| 2     | FirstValid               | uint64   | round number
+| 3     | FirstValidTime           | uint64   | causes program to fail; reserved for future use
+| 4     | LastValid                | uint64   | round number
+| 5     | Note                     | \[\]byte | Any data up to 1024 bytes
+| 6     | Lease                    | \[\]byte | 32 byte lease value
+| 7     | Receiver                 | \[\]byte | 32 byte address
+| 8     | Amount                   | uint64   | micro-Algos
+| 9     | CloseRemainderTo         | \[\]byte | 32 byte address
+| 10    | VotePK                   | \[\]byte | 32 byte address
+| 11    | SelectionPK              | \[\]byte | 32 byte address
+| 12    | VoteFirst                | uint64   | The first round that the participation key is valid.
+| 13    | VoteLast                 | uint64   | The last round that the participation key is valid.
+| 14    | VoteKeyDilution          | uint64   | dilution for the 2-level participation key
+| 15    | Type                     | \[\]byte | transaction type as bytes
+| 16    | TypeEnum                 | uint64   | 
+| 17    | XferAsset                | uint64   | Asset ID
+| 18    | AssetAmount              | uint64   | value in Asset's units
+| 19    | AssetSender              | \[\]byte | 32 byte address. Causes clawback of all value of asset from AssetSender if Sender is the Clawback address of the                                                   asset.
+| 20    | AssetReceiver            | \[\]byte | 32 byte address
+| 21    | AssetCloseTo             | \[\]byte | 32 byte address
+| 22    | GroupIndex               | uint64   | Position of this transaction within an atomic transaction group. A stand-alone transaction is implicitly element 0                                                 in a group of 1
+| 23    | TxID                     | \[\]byte | the computed ID for this transaction. 32 bytes.
+| 24    | ApplicationID            | uint64   | ApplicationID from ApplicationCall transaction. LogicSigVersion >= 2.
+| 25    | OnCompletion             | uint64   | ApplicationCall transaction on completion action. LogicSigVersion >= 2.
+| 26    | ApplicationArgs          | \[\]byte | arguments passed to the application in the ApplicationCall transaction. LogicSigVersion >= 2.
+| 27    | NumAppArgs               | uint64   | number of ApplicationArgs. LogicSigVersion >= 2.
+| 28    | Accounts                 | \[\]byte | Accounts listed in the ApplicationCall transaction. LogicSigVersion >= 2.
+| 29    | NumAccounts              | uint64   | number of Accounts. LogicSigVersion >= 2.
+| 30    | ApprovalProgram          | \[\]byte | approval program. LogicSigVersion >= 2.
+| 31    | ClearStateProgram        | \[\]byte | clear state program. LogicSigVersion >= 2.
+| 32    | RekeyTo                  | \[\]byte | 32 byte Sender's new AuthAddr. LogicSigVersion >= 2.
+| 33    | ConfigAsset              | uint64   | Asset ID in asset config transaction. LogicSigVersion >= 2.
+| 34    | ConfigAssetTotal         | uint64   | total number of units of this asset created. LogicSigVersion >= 2.
+| 35    | ConfigAssetDecimals      | uint64   | number of digits to display after the decimal place when displaying the asset. LogicSigVersion >= 2.
+| 36    | ConfigAssetDefaultFrozen | uint64   | whether the asset's slots are frozen by default or not, 0 or 1. LogicSigVersion >= 2.
+| 37    | ConfigAssetUnitName      | \[\]byte | unit name of the asset. LogicSigVersion >= 2.
+| 38    | ConfigAssetName          | \[\]byte | the asset name. LogicSigVersion >= 2.
+| 39    | ConfigAssetURL	         | \[\]byte | URL. LogicSigVersion >= 2.
+| 40    | ConfigAssetMetadataHash  | \[\]byte | 32 byte commitment to some unspecified asset metadata. LogicSigVersion >= 2.
+| 41    | ConfigAssetManager       | \[\]byte | 32 byte address. LogicSigVersion >= 2.
+| 42    | ConfigAssetReserve       | \[\]byte | 32 byte address. LogicSigVersion >= 2.
+| 43    | ConfigAssetFreeze        | \[\]byte | 32 byte address. LogicSigVersion >= 2.
+| 44    | ConfigAssetClawback      | \[\]byte | 32 byte address. LogicSigVersion >= 2.
+| 45    | FreezeAsset              | uint64   | Asset ID being frozen or un-frozen. LogicSigVersion >= 2.
+| 46    | FreezeAssetAccount       | \[\]byte | 32 byte address of the account whose asset slot is being frozen or un-frozen. LogicSigVersion >= 2.
+| 47    | FreezeAssetFrozen        | uint64   | the new frozen value, 0 or 1. LogicSigVersion >= 2.
+| 48    | Assets                   | uint64   | foreign Assets listed in the ApplicationCall transaction. LogicSigVersion >= 3.
+| 49    | NumAssets                | uint64   | number of Assets. LogicSigVersion >= 3.
+| 50    | Applications             | uint64   | foreign Apps listed in the ApplicationCall transaction. LogicSigVersion >= 3.
+| 51    | NumApplications          | uint64   | number of Applications. LogicSigVersion >= 3.
+| 52    | GlobalNumUint	           | uint64   | number of global state integers in ApplicationCall. LogicSigVersion >= 3.
+| 53    | GlobalNumByteSlice       | uint64   | number of global state byteslices in ApplicationCall. LogicSigVersion >= 3.
+| 54    | LocalNumUint             | uint64   | number of local state integers in ApplicationCall. LogicSigVersion >= 3.
+| 55    | LocalNumByteSlice        | uint64   | number of local state byteslices in ApplicationCall. LogicSigVersion >= 3.
+| 56    | ExtraProgramPages        | uint64   | number of additional pages for each of the application's approval and clear state programs. An ExtraProgramPages of                                                 1 means 2048 more total bytes, or 1024 for each program. LogicSigVersion >= 4.
+| 57    | Nonparticipation         | uint64   | marks an account nonparticipating for rewards. LogicSigVersion >= 5.
+| 58    | Logs                     | \[\]byte | log messages emitted by an application call (itxn only). LogicSigVersion >= 5.
+| 59    | NumLogs                  | uint64   | number of Logs (itxn only). LogicSigVersion >= 5.
+| 60    | CreatedAssetID	         | uint64   | Asset ID allocated by the creation of an ASA (itxn only). LogicSigVersion >= 5.
+| 61    | CreatedApplicationID     | uint64   | ApplicationID allocated by the creation of an application (itxn only). LogicSigVersion >= 5.
+
 <To Be Continue>
 
 
@@ -283,3 +351,6 @@
 
 
 
+
+
+ 
