@@ -261,7 +261,7 @@
 | `gaids`                | push the ID of the asset or application created in the Xth transaction of the current group
 
 
-### Transaction Fields
+#### Transaction Fields
 
 | Index | Name                     | Type     | Notes
 |:-----:|:------------------------:|:--------:|:-----------------------------------
@@ -328,7 +328,237 @@
 | 60    | CreatedAssetID	         | uint64   | Asset ID allocated by the creation of an ASA (itxn only). LogicSigVersion >= 5.
 | 61    | CreatedApplicationID     | uint64   | ApplicationID allocated by the creation of an application (itxn only). LogicSigVersion >= 5.
 
-<To Be Continue>
+
+
+#### Global Fields
+
+- Global fields are fields that are common to all the transactions in the group. In particular it includes consensus parameters.
+
+| Index | Name                      | Type     | Notes
+|:-----:|:-------------------------:|:--------:|:
+| 0     | MinTxnFee                 | uint64   | micro Algos
+| 1     | MinBalance                | uint64   | micro Algos
+| 2     | MaxTxnLife                | uint64   | rounds
+| 3     | ZeroAddress               | \[\]byte | 32 byte address of all zero bytes
+| 4     | GroupSize                 | uint64   | number of transactions in this atomic transaction group. At least 1
+| 5     | LogicSigVersion           | uint64   | maximum supported TEAL version. LogicSigVersion >= 2.
+| 6     | Round                     | uint64   | current round number. LogicSigVersion >= 2.
+| 7     | LatestTimestamp           | uint64   | last confirmed block UNIX timestamp. Fails if negative. LogicSigVersion >= 2.
+| 8     | CurrentApplicationID      | uint64   | ID of current application executing. Fails in LogicSigs. LogicSigVersion >= 2.
+| 9     | CreatorAddress            | \[\]byte | address of the creator of the current application. Fails if no such application is executing. LogicSigVersion >=                                                    3.
+| 10    | CurrentApplicationAddress | \[\]byte | address that the current application controls. Fails in LogicSigs. LogicSigVersion >= 5.
+| 11    | GroupID                   | \[\]byte | ID of the transaction group. 32 zero bytes if the transaction is not part of a group. LogicSigVersion >= 5.
+
+
+#### Asset Fields
+
+- Asset fields include `AssetHolding` and `AssetParam` fields that are used in the `asset_holding_get` and `asset_params_get opcodes`.
+
+| Index | Name         | Type   | Notes
+|:-----:|:------------:|:------:|:---------------------------------------------
+| 0     | AssetBalance | uint64 | amount of the asset unit held by this account
+| 1     | AssetFrozen  | uint64 | is the asset frozen or not
+
+| Index | Name               | Type     | Notes
+|:-----:|:------------------:|:--------:|:---------------------------------------
+| 0     | AssetTotal         | uint64   | total number of units of this asset
+| 1     | AssetDecimals	     | uint64   | AssetParams.Decimals
+| 2     | AssetDefaultFrozen | uint64   | frozen by default or not
+| 3     | AssetUnitName      | \[\]byte | Asset unit name
+| 4     | AssetName          | \[\]byte | Asset name
+| 5     | AssetURL           | \[\]byte | URL with additional info about the asset
+| 6     | AssetMetadataHash	 | \[\]byte | arbitrary commitment
+| 7     | AssetManager       | \[\]byte | manager commitment
+| 8     | AssetReserve       | \[\]byte | reserve address
+| 9     | AssetFreeze        | \[\]byte | freeze address
+| 10    | AssetClawback      | \[\]byte | clawback address
+| 11    | AssetCreator       | \[\]byte | creator address. LogicSigVersion >= 5.
+
+
+#### App Fields
+
+- App fields used in the `app_params_get` opcode.
+
+| Index | Name                  | Type     | Notes
+|:-----:|:---------------------:|:--------:|:---------------------------------------------------
+| 0     | AppApprovalProgram    | \[\]byte | bytecode of Approval Program
+| 1     | AppClearStateProgram  | \[\]byte | bytecode of Clear State Program
+| 2     | AppGlobalNumUint      | uint64   | number of uint64 values allowed in Global State
+| 3     | AppGlobalNumByteSlice | uint64   | number of byte array values allowed in Global State
+| 4     | AppLocalNumUint       | uint64   | number of uint64 values allowed in Local State
+| 5     | AppLocalNumByteSlice	| uint64   | number of byte array values allowed in Local State
+| 6     | AppExtraProgramPages  | uint64   | number of Extra Program Pages of code space
+| 7     | AppCreator            | \[\]byte | creator address
+| 8     | AppAddress            | \[\]byte | address for which this application has authority
+
+
+### Flow Control
+
+| Op               | Description
+|:----------------:|:-------------------------------------------------------------------------------------------------------------------------------------------
+| `err`            | error. Fail immediately. This is primarily a fencepost against accidental zero bytes getting compiled into programs.
+| `bnz target`     | branch to TARGET if value X is not zero
+| `bz target`      | branch to TARGET if value X is zero
+| `b target`       | branch unconditionally to TARGET
+| `return`         | use last value on stack as success value; end
+| `pop`            | discard value X from stack
+| `dup`            | duplicate last value on stack
+| `dup2`           | duplicate two last values on stack: A, B -> A, B, A, B
+| `dig n`          | push the Nth value from the top of the stack. dig 0 is equivalent to dup
+| `cover n`        | remove top of stack, and place it deeper in the stack such that N elements are above it. Fails if stack depth <= N.
+| `uncover n`      | remove the value at depth N in the stack and shift above items down so the Nth deep value is on top of the stack. Fails if stack depth <= N.
+| `swap`           | swaps two last values on stack: A, B -> B, A
+| `select`         | selects one of two values based on top-of-stack: A, B, C -> (if C != 0 then B else A)
+| `assert`         | immediately fail unless value X is a non-zero number
+| `callsub target` | branch unconditionally to TARGET, saving the next instruction on the call stack
+| `retsub`         | pop the top instruction from the call stack and branch to it
+
+
+### State Access
+
+| Op                    | Description
+|:---------------------:|:----------------------------------------------------------------------------------------------------------------------------------------
+| `balance`             | get balance for account A, in microalgos. The balance is observed after the effects of previous transactions in the group, and after the                           fee for the current transaction is deducted.
+| `min_balance`         | get minimum required balance for account A, in microalgos. Required balance is affected by ASA and App usage. When creating or opting                               into an app, the minimum balance grows before the app code runs, therefore the increase is visible there. When deleting or closing out,                             the minimum balance decreases after the app executes.
+| `app_opted_in`        | check if account A opted in for the application B
+| `app_local_get`       | read from account A from local state of the current application key B
+| `app_local_get_ex`    | read from account A from local state of the application B key C
+| `app_global_get`      | read key A from global state of a current application
+| `app_global_get_ex`   | read from application A global state key B
+| `app_local_put`       | write to account specified by A to local state of a current application key B with value C
+| `app_global_put`      | write key A and value B to global state of the current application
+| `app_local_del`       | delete from account A local state key B of the current application
+| `app_global_del`      | delete key A from a global state of the current application
+| `asset_holding_get i` | read from account A and asset B holding field X (imm arg)
+| `asset_params_get i`  | read from asset A params field X (imm arg)
+| `app_params_get i`    | read from app A params field X (imm arg)
+| `log`                 | write bytes to log state of the current application
+
+
+### Inner Transactions
+
+- Inner transactions allow stateful applications to have many of the effects of a true top-level transaction, programatically.
+- The most important differences are that they are not signed, duplicates are not rejected, and they do not appear in the block in the usual away.
+- Their effects are noted in metadata associated with the associated top-level application call transaction.
+- An inner transaction's `Sender` must be the SHA512_256 hash of the application ID (prefixed by "appID"), or an account that has been rekeyed to that hash.
+
+- Currently, inner transactions may perform `pay`, `axfer`, `acfg`, and `afrz` effects.
+- After executing an inner transaction with `itxn_submit`, the effects of the transaction are visible begining with the next instruction.
+
+- Of the transaction Header fields, only a few fields may be set: `Type`/`TypeEnum`, `Sender`, and `Fee`.
+- For the specific fields of each transaction types, any field, except `RekeyTo` may be set.
+- This allows, for example, clawback transactions, asset opt-ins, and asset creates in addtion to the more common uses of `axfer` and `acfg`.
+- All fields default to the zero value, except those described under `itxn_begin`.
+
+- Fields may be set multiple times, but may not be read. The most recent setting is used when `itxn_submit` executes. (For this purpose `Type` and `TypeEnum` are considered to be the same field.) 
+- `itxn_field` fails immediately for unsupported fields, unsupported transaction types, or improperly typed values for a particular field. 
+- `itxn_field` makes aceptance decisions entirely from the field and value provided, never considering previously set fields.
+- Illegal interactions between fields, such as setting fields that belong to two different transaction types, are rejected by `itxn_submit`.
+
+| Op             | Description
+|:--------------:|:-----------------------------------------------------------------------------------------------------------------------------------
+| `itxn_begin`   | begin preparation of a new inner transaction
+| `itxn_field f` | set field F of the current inner transaction to X
+| `itxn_submit`  | execute the current inner transaction. Fail if 16 inner transactions have already been executed, or if the transaction itself fails.
+| `itxn f`       | push field F of the last inner transaction to stack
+| `itxna f i`    | push Ith value of the array field F of the last inner transaction to stack
+
+
+## Assembler Syntax
+
+- The assembler parses line by line. 
+- Ops that just use the stack appear on a line by themselves.
+- Ops that take arguments are the op and then whitespace and then any argument or arguments.
+
+- The first line may contain a special version pragma `#pragma version X`, which directs the assembler to generate TEAL bytecode targeting a certain version.
+
+- Subsequent lines may contain other pragma declarations (i.e., `#pragma <some-specification>`), pertaining to checks that the assembler should perform before agreeing to emit the program bytes, specific optimizations, etc.
+
+- "`//`" prefixes a line comment.
+
+
+### Constants and Pseudo-Ops
+
+- A few pseudo-ops simplify writing code.
+- `int` and `byte` and `addr` followed by a constant record the constant to a `intcblock` or `bytecblock` at the beginning of code and insert an `intc` or `bytec` reference where the instruction appears to load that value. 
+- `addr` parses an Algorand account address base32 and converts it to a regular bytes constant.
+
+- `byte` constants are:
+```
+byte base64 AAAA...
+byte b64 AAAA...
+byte base64(AAAA...)
+byte b64(AAAA...)
+byte base32 AAAA...
+byte b32 AAAA...
+byte base32(AAAA...)
+byte b32(AAAA...)
+byte 0x0123456789abcdef...
+byte "\x01\x02"
+byte "string literal"
+```
+
+- `int` constants may be `0x` prefixed for hex, `0` prefixed for octal, or decimal numbers.
+
+- `intcblock` may be explicitly assembled.
+- It will conflict with the assembler gathering `int` pseudo-ops into a `intcblock` program prefix, but may be used if code only has explicit `intc` references.
+- `intcblock` should be followed by space separated int constants all on one line.
+
+- `bytecblock` may be explicitly assembled.
+- It will conflict with the assembler if there are any `byte` pseudo-ops but may be used if only explicit `byte`c references are used.
+- `bytecblock` should be followed with byte constants all on one line, either 'encoding value' pairs (`b64 AAA...`) or 0x prefix or function-style values (`base64(...)`) or string literal values.
+
+
+### Labels and Branches
+
+- A label is defined by any string not some other op or keyword and ending in ':'.
+- A label can be an argument (without the trailing ':') to a branch instruction.
+
+- Example:
+```
+int 1
+bnz safe
+err
+safe:
+pop
+```
+
+
+## Encoding and Versioning
+
+- A program starts with a varuint declaring the version of the compiled code.
+- Any addition, removal, or change of opcode behavior increments the version.
+- For the most part opcode behavior should not change, addition will be infrequent (not likely more often than every three months and less often as the language matures), and removal should be very rare.
+
+- For version 1, subsequent bytes after the varuint are program opcode bytes. 
+- Future versions could put other metadata following the version identifier.
+
+- It is important to prevent newly-introduced transaction fields from breaking assumptions made by older versions of TEAL.
+- If one of the transactions in a group will execute a TEAL program whose version predates a given field, that field must not be set anywhere in the transaction group, or the group will be rejected. 
+
+- This requirement is enforced as follows:
+  - For every transaction, compute the earliest TEAL version that supports all the fields and and values in this transaction.
+  - Compute the largest version number across all the transactions in a group (of size 1 or more), call it `maxVerNo`. If any transaction in this group has a TEAL program with a version smaller than `maxVerNo`, then that TEAL program will fail.
+
+
+
+### Varuint
+
+- A 'proto-buf style variable length unsigned int' is encoded with 7 data bits per byte and the high bit is 1 if there is a following byte and 0 for the last byte.
+- The lowest order 7 bits are in the first byte, followed by successively higher groups of 7 bits.
+
+
+## What TEAL Cannot Do
+Design and implementation limitations to be aware of with various versions of TEAL:
+
+- Stateless TEAL cannot lookup balances of Algos or other assets. (Standard transaction accounting will apply after TEAL has run and authorized a transaction. A TEAL-approved transaction could still be invalid by other accounting rules just as a standard signed transaction could be invalid. e.g. I can't give away money I don't have.)
+- TEAL cannot access information in previous blocks. TEAL cannot access most information in other transactions in the current block. (TEAL can access fields of the transaction it is attached to and the transactions in an atomic transaction group.)
+- TEAL cannot know exactly what round the current transaction will commit in (but it is somewhere in FirstValid through LastValid).
+- TEAL cannot know exactly what time its transaction is committed.
+- TEAL cannot loop prior to v4. In v3 and prior, the branch instructions `bnz` "branch if not zero", `bz` "branch if zero" and `b` "branch" can only branch forward so as to skip some code.
+- Until v4, TEAL had no notion of subroutines (and therefore no recursion). As of v4, use `callsub` and `retsub`.
+- TEAL cannot make indirect jumps. `b`, `bz`, `bnz`, and `callsub` jump to an immediately specified address, and `retsub` jumps to the address currently on the top of the call stack, which is manipulated only by previous calls to `callsub`.
+  
 
 
 
