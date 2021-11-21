@@ -1,6 +1,6 @@
 const algosdk = require('algosdk');
 
-// ERROR exists 
+// combination of other files
 
 // user declared account mnemonics
 const creatorMnemonic = "detail hazard satoshi you castle idea portion allow vault advice section emerge jump theme suit make story lizard multiply scorpion toast inch olympic absorb win";
