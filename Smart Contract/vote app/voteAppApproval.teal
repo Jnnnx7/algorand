@@ -1,7 +1,4 @@
 #pragma version 4
-// Handle each possible OnCompletion type. We don't have to worry about
-// handling ClearState, because the ClearStateProgram will execute in that
-// case, not the ApprovalProgram.
 
 txn OnCompletion
 int NoOp
@@ -39,8 +36,16 @@ txn Sender
 ==
 bnz handle_optin
 
-// read global state
-byte "counter"
+// update global state
+// if vote for "A"
+byte "A"
+txn ApplicationArgs 0
+==
+bnz vote_a
+
+// vote for candidate B
+// get B's current vote from global state
+byte "B"
 dup
 app_global_get
 
@@ -48,31 +53,40 @@ app_global_get
 int 1
 +
 
-// store to scratch space
-dup
-store 0
-
 // update global state
 app_global_put
 
-// read local state for sender
+// update "candidate"
 int 0
-byte "counter"
-app_local_get
+byte "candidate"
+txn ApplicationArgs 0
+app_local_put
+
+b end_vote
+
+vote_a:
+// vote for candidate A
+// get A's current vote from global state
+byte "A"
+dup
+app_global_get
 
 // increment the value
 int 1
 +
-store 1
 
-// update local state for sender
+// update global state
+app_global_put
+
+// update "candidate"
 int 0
-byte "counter"
-load 1
+byte "candidate"
+txn ApplicationArgs 0
 app_local_put
 
+end_vote:
 // load return value as approval
-load 0
+int 1
 return
 
 handle_optin:

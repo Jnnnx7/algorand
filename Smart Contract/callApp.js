@@ -82,16 +82,19 @@ async function main() {
         const userMnemonic = "bring hockey blanket leisure object marriage siege make future gate prevent later teach solution say stick pave term manage library army note flavor absorb tone";
         let userAccount = algosdk.mnemonicToSecretKey(userMnemonic);
 
-        const appId = 46441245;
+        const appId = 46501612;
 
         // // call application without arguments
         // await callApp(algodClient, userAccount, appId, undefined);
 
         // call application with arguments
-        let ts = new Date(new Date().toUTCString());
-        console.log(ts)
+        // let ts = new Date(new Date().toUTCString());
+        // console.log(ts)
+        // let appArgs = [];
+        // appArgs.push(new Uint8Array(Buffer.from(ts)));
+
         let appArgs = [];
-        appArgs.push(new Uint8Array(Buffer.from(ts)));
+        appArgs.push(new TextEncoder().encode("A"));
         
         await callApp(algodClient, userAccount, appId, appArgs);
 

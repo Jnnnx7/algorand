@@ -87,7 +87,7 @@ async function main() {
         let creatorAccount = algosdk.mnemonicToSecretKey(creatorMnemonic);
 
         // compile the approval program
-        let filePath = path.join(__dirname, 'approvalProgramSourceInitial.teal');
+        let filePath = path.join(__dirname, 'vote\ app/voteAppApproval.teal');
         const approvalProgramSource = fs.readFileSync(filePath);
         // console.log(approvalProgramSource)
         let compiledApprovalResult = await algodClient.compile(approvalProgramSource).do();
@@ -95,7 +95,7 @@ async function main() {
         let compiledApprovalBytes = new Uint8Array(Buffer.from(compiledApprovalResult.result, "base64"));
 
         // compile the clear program
-        filePath = path.join(__dirname, 'clearProgramSource.teal');
+        filePath = path.join(__dirname, 'vote\ app/voteAppClear.teal');
         const clearProgramSource = fs.readFileSync(filePath);
         // console.log(clearProgramSource)
         let compiledClearResult = await algodClient.compile(clearProgramSource).do();

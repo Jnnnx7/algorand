@@ -1,6 +1,4 @@
 const algosdk = require('algosdk');
-const fs = require('fs');
-const path = require('path');
 
 const waitForConfirmation = async function (algodClient, txId, timeout) {
     if (algodClient == null || txId == null || timeout < 0) {
@@ -36,10 +34,10 @@ const waitForConfirmation = async function (algodClient, txId, timeout) {
     throw new Error("Transaction " + txId + " not confirmed after " + timeout + " rounds!");
 };
 
-// update application 
-async function updateApp(client, creatorAccount, index, approvalProgram, clearProgram) {
-    // define sender as creator
-    let sender = creatorAccount.addr;
+// optIn
+async function optInApp(client, account, index) {
+    // define sender
+    let sender = account.addr;
 
 	// get node suggested parameters
     let params = await client.getTransactionParams().do();
@@ -48,11 +46,11 @@ async function updateApp(client, creatorAccount, index, approvalProgram, clearPr
     params.flatFee = true;
 
     // create unsigned transaction
-    let txn = algosdk.makeApplicationUpdateTxn(sender, params, index, approvalProgram, clearProgram);
+    let txn = algosdk.makeApplicationOptInTxn(sender, params, index);
     let txId = txn.txID().toString();
 
     // Sign the transaction
-    let signedTxn = txn.signTxn(creatorAccount.sk);
+    let signedTxn = txn.signTxn(account.sk);
     console.log("Signed transaction with txID: %s", txId);
 
     // Submit the transaction
@@ -63,9 +61,7 @@ async function updateApp(client, creatorAccount, index, approvalProgram, clearPr
 
     // display results
     let transactionResponse = await client.pendingTransactionInformation(txId).do();
-    let appId = transactionResponse['txn']['txn'].apid;
-    console.log("Updated app-id: ",appId);
-    return appId;
+    console.log("Opted-in to app-id:",transactionResponse['txn']['txn']['apid'])
 }
 
 async function main() {
@@ -76,33 +72,18 @@ async function main() {
         const algodPort = 4001;
         const algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort);
 
-        // get the creator account 
-        const creatorMnemonic = "already chalk result film time like kiss rib course artwork shy fiscal enrich wrong artefact mansion slam electric gorilla response mother gorilla bottom absorb tube";
-        let creatorAccount = algosdk.mnemonicToSecretKey(creatorMnemonic);
+        // get user account
+        const userMnemonic = "bring hockey blanket leisure object marriage siege make future gate prevent later teach solution say stick pave term manage library army note flavor absorb tone";
+        let userAccount = algosdk.mnemonicToSecretKey(userMnemonic);
 
-        let filePath = path.join(__dirname, 'approvalProgramSourceRefactored.teal');
-        const approvalProgramSource = fs.readFileSync(filePath);
-        // console.log(approvalProgramSource)
-        let compiledApprovalResult = await algodClient.compile(approvalProgramSource).do();
-        // console.log("Result = " + compiledApprovalResult.result);
-        let compiledApprovalBytes = new Uint8Array(Buffer.from(compiledApprovalResult.result, "base64"));
+        const appId = 46501612;
 
-        // compile the clear program
-        filePath = path.join(__dirname, 'clearProgramSource.teal');
-        const clearProgramSource = fs.readFileSync(filePath);
-        // console.log(clearProgramSource)
-        let compiledClearResult = await algodClient.compile(clearProgramSource).do();
-        // console.log("Result = " + compiledClearResult.result);
-        let compiledClearBytes = new Uint8Array(Buffer.from(compiledClearResult.result, "base64"));
+        // opt-in to application
+        await optInApp(algodClient, userAccount, appId);
 
-        const appId = 46441245;
-
-        await updateApp(algodClient, creatorAccount, appId, compiledApprovalBytes, compiledClearBytes);
     } catch (err) {
         console.log("err", err);  
     }
-    
 }
 
 main();
-
