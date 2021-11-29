@@ -9,6 +9,8 @@ async function readLocalState(client, account, index){
             for (let n = 0; n < accountInfoResponse['apps-local-state'][i][`key-value`].length; n++) {
                 console.log(accountInfoResponse['apps-local-state'][i][`key-value`][n]);
             }
+            
+            break;
         }
     }
 }
@@ -22,6 +24,8 @@ async function readGlobalState(client, account, index){
             for (let n = 0; n < accountInfoResponse['created-apps'][i]['params']['global-state'].length; n++) {
                 console.log(accountInfoResponse['created-apps'][i]['params']['global-state'][n]);
             }
+
+            break;
         }
     }
 }
