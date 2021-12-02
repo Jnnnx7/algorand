@@ -77,7 +77,7 @@ async function main() {
         const userMnemonic = "bring hockey blanket leisure object marriage siege make future gate prevent later teach solution say stick pave term manage library army note flavor absorb tone";
         let userAccount = algosdk.mnemonicToSecretKey(userMnemonic);
 
-        const appId = 46441245;
+        const appId = 48220899;
 
         // clear application from user account
         await clearApp(algodClient, userAccount, appId);

@@ -35,7 +35,7 @@ const waitForConfirmation = async function (algodClient, txId, timeout) {
 };
 
 // call application 
-async function callApp(client, account, index, appArgs) {
+async function callApp(client, account, appId, appArgs) {
     // define sender
     let sender = account.addr;
 
@@ -46,7 +46,7 @@ async function callApp(client, account, index, appArgs) {
     params.flatFee = true;
 
     // create unsigned transaction
-    let txn = algosdk.makeApplicationNoOpTxn(sender, params, index, appArgs)
+    let txn = algosdk.makeApplicationNoOpTxn(sender, params, appId, appArgs)
     let txId = txn.txID().toString();
 
     // Sign the transaction
@@ -82,7 +82,7 @@ async function main() {
         const userMnemonic = "bring hockey blanket leisure object marriage siege make future gate prevent later teach solution say stick pave term manage library army note flavor absorb tone";
         let userAccount = algosdk.mnemonicToSecretKey(userMnemonic);
 
-        const appId = 46501612;
+        const appId = 48220899;
 
         // // call application without arguments
         // await callApp(algodClient, userAccount, appId, undefined);

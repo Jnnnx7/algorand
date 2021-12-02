@@ -77,7 +77,7 @@ async function main() {
         const creatorMnemonic = "already chalk result film time like kiss rib course artwork shy fiscal enrich wrong artefact mansion slam electric gorilla response mother gorilla bottom absorb tube";
         let creatorAccount = algosdk.mnemonicToSecretKey(creatorMnemonic);
 
-        const appId = 46441245;
+        const appId = 48220899;
 
         // delete application
         await deleteApp(algodClient, creatorAccount, appId);

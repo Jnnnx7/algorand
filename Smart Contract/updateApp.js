@@ -95,7 +95,7 @@ async function main() {
         // console.log("Result = " + compiledClearResult.result);
         let compiledClearBytes = new Uint8Array(Buffer.from(compiledClearResult.result, "base64"));
 
-        const appId = 46501612;
+        const appId = 48220899;
 
         await updateApp(algodClient, creatorAccount, appId, compiledApprovalBytes, compiledClearBytes);
     } catch (err) {

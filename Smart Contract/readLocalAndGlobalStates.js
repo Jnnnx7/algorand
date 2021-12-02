@@ -46,7 +46,7 @@ async function main() {
         const userMnemonic = "bring hockey blanket leisure object marriage siege make future gate prevent later teach solution say stick pave term manage library army note flavor absorb tone";
         let userAccount = algosdk.mnemonicToSecretKey(userMnemonic);
 
-        const appId = 46501612;
+        const appId = 48220899;
 
         // read local state of application from user account
         await readLocalState(algodClient, userAccount, appId);
